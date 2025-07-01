@@ -10,9 +10,10 @@ const clerkWebhooks = async (req, res) => {
             "svix-timestamp": req.headers["svix-timestamp"],
             "svix-signature": req.headers["svix-signature"],
         };
-        await whook.verify(JSON.stringify(req.body), headers)
+        const payload = req.body.toString();
+        const evt = whook.verify(payload, headers);
+        const { data, type } = evt;
 
-        const {data, type} = req.body
         const userData = {
             _id: data.id,
             email: data.email_addresses[0].email_address,
@@ -32,14 +33,13 @@ const clerkWebhooks = async (req, res) => {
                 await User.findByIdAndDelete(data.id);
                 break;
             }
-
             default:
                 break;
         }
-        res.json({success: true, message: "Webhook processed successfully!"})
+        res.json({ success: true, message: "Webhook processed successfully!" })
     } catch (error) {
         console.log(error.message);
-        res.json({success: false, message: error.message});
+        res.json({ success: false, message: error.message });
     }
 }
 
